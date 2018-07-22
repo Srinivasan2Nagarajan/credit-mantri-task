@@ -20,7 +20,7 @@ from __future__ import division, print_function, absolute_import
 import argparse
 import sys
 import logging
-
+import pyspark
 from com.creditmantri.dbSync import __version__
 
 __author__ = "Srinivasan Nagaraja Rao"
@@ -28,7 +28,6 @@ __copyright__ = "Srinivasan Nagaraja Rao"
 __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
-
 
 def fib(n):
     """Fibonacci example function
