@@ -24,7 +24,7 @@ import pyspark
 from com.creditmantri.dbSync import __version__
 
 __author__ = "Srinivasan Nagaraja Rao"
-__copyright__ = "Srinivasan Nagaraja Rao"
+__copyright__ = "Srinivasan Nagaraja Rao"   
 __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
