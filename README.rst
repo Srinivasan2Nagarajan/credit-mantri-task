@@ -3,17 +3,15 @@ credit-mantri-task
 ==================
 
 
-Add a short description here!
+A small project to move from RDBMS to NoSQL Database !
 
 
 Description
 ===========
 
-A longer description of your project goes here...
+This project consist of Mysql for RDBMS database, Kafka streaming to relay data as a payload, spark stream to catch the data and if needed to preprocess for saing in NoSql Database such as MongoDB...
 
 
 Note
 ====
-
-This project has been set up using PyScaffold 3.0.3. For details and usage
-information on PyScaffold see http://pyscaffold.org/.
+if needed ksql can be used in future
