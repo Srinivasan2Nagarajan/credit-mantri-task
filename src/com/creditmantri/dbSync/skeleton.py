@@ -13,73 +13,46 @@ inside your current environment.
 Besides console scripts, the header (i.e. until _logger...) of this file can
 also be used as template for Python modules.
 
-Note: This skeleton file can be safely removed if not needed!
 """
 from __future__ import division, print_function, absolute_import
 
-import argparse
 import sys
 import logging
-import pyspark
 from com.creditmantri.dbSync import __version__
+import json
+from pyspark.sql.functions import *
+from pyspark import SparkContext, SparkConf
+from pyspark.streaming import StreamingContext
+from pyspark.streaming.kafka import KafkaUtils
 
 __author__ = "Srinivasan Nagaraja Rao"
-__copyright__ = "Srinivasan Nagaraja Rao"   
+__copyright__ = "Srinivasan Nagaraja Rao"
 __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
 
-def fib(n):
-    """Fibonacci example function
+# Spark Context created here
+sc = SparkContext("local[*]", appName="creditMantri")
 
-    Args:
-      n (int): integer
-
-    Returns:
-      int: n-th Fibonacci number
-    """
-    assert n > 0
-    a, b = 1, 1
-    for i in range(n-1):
-        a, b = b, a+b
-    return a
+# Spark Streaming Context Created Here
+ssc = StreamingContext(sc, 1)
+topic = "credit-mantri"
+brokers = "localhost:9092"
+kvs = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers})
 
 
-def parse_args(args):
-    """Parse command line parameters
+def convert(rdd):
+    df_json = rdd.map(lambda x: json.loads(x[1])).toDF()
+    return df_json
 
-    Args:
-      args ([str]): command line parameters as list of strings
 
-    Returns:
-      :obj:`argparse.Namespace`: command line parameters namespace
-    """
-    parser = argparse.ArgumentParser(
-        description="Just a Fibonnaci demonstration")
-    parser.add_argument(
-        '--version',
-        action='version',
-        version='credit-mantri-task {ver}'.format(ver=__version__))
-    parser.add_argument(
-        dest="n",
-        help="n-th Fibonacci number",
-        type=int,
-        metavar="INT")
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        dest="loglevel",
-        help="set loglevel to INFO",
-        action='store_const',
-        const=logging.INFO)
-    parser.add_argument(
-        '-vv',
-        '--very-verbose',
-        dest="loglevel",
-        help="set loglevel to DEBUG",
-        action='store_const',
-        const=logging.DEBUG)
-    return parser.parse_args(args)
+def write_mongo(rdd):
+    try:
+        convert(rdd).write \
+            .format('com.mongodb.spark.sql.DefaultSource').mode('append') \
+            .option('database', 'NAME').option('collection', 'COLLECTION_MONGODB').save()
+    except:
+        pass
 
 
 def setup_logging(loglevel):
@@ -94,22 +67,13 @@ def setup_logging(loglevel):
 
 
 def main(args):
-    """Main entry point allowing external calls
-
-    Args:
-      args ([str]): command line parameter list
-    """
-    args = parse_args(args)
-    setup_logging(args.loglevel)
-    _logger.debug("Starting crazy calculations...")
-    print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
-    _logger.info("Script ends here")
+    convert(kvs)
 
 
 def run():
     """Entry point for console_scripts
     """
-    main(sys.argv[1:])
+    main()
 
 
 if __name__ == "__main__":
